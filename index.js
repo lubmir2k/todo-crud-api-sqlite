@@ -23,10 +23,11 @@ const validateId = (req, res, next) => {
 
 // Helper to convert various formats to boolean
 const toBoolean = (value) => {
+  if (value === undefined) return undefined;
   if (typeof value === 'boolean') return value;
   if (value === 'true' || value === 1) return true;
   if (value === 'false' || value === 0) return false;
-  return value; // Return as-is if not recognized format
+  return undefined; // Return undefined for unrecognized formats
 };
 
 // API Endpoints
@@ -73,21 +74,47 @@ app.get('/todos/:id', validateId, (req, res) => {
 app.put('/todos/:id', validateId, (req, res) => {
   const id = req.validatedId;
   const { title, completed } = req.body;
+
+  // Build dynamic SQL for partial updates
+  const fields = [];
+  const params = [];
+
+  if (title !== undefined) {
+    fields.push('title = ?');
+    params.push(title);
+  }
+
   const completedBool = toBoolean(completed);
-  db.run(
-    'UPDATE todos SET title = ?, completed = ? WHERE id = ?',
-    [title, completedBool, id],
-    function(err) {
+  if (completedBool !== undefined) {
+    fields.push('completed = ?');
+    params.push(completedBool);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).json({ error: 'No valid fields to update provided' });
+  }
+
+  params.push(id);
+  const sql = `UPDATE todos SET ${fields.join(', ')} WHERE id = ?`;
+
+  db.run(sql, params, function(err) {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'To-do item not found' });
+    }
+
+    // Fetch the updated todo to return complete data
+    db.get('SELECT * FROM todos WHERE id = ?', [id], (err, row) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ error: err.message });
       }
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'To-do item not found' });
-      }
-      res.json({ id, title, completed: completedBool });
-    }
-  );
+      res.json(row);
+    });
+  });
 });
 
 // Delete a to-do item by ID

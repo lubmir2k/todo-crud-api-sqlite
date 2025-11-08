@@ -54,7 +54,7 @@ describe('Todos API', () => {
       .send({ title: 'Updated Todo', completed: true });
     expect(res.statusCode).toEqual(200);
     expect(res.body.title).toBe('Updated Todo');
-    expect(res.body.completed).toBe(true);
+    expect(res.body.completed).toBe(1); // SQLite stores boolean as 1
   });
 
   it('should return 404 when updating non-existent todo', async () => {
@@ -63,6 +63,32 @@ describe('Todos API', () => {
       .send({ title: 'Updated Todo', completed: true });
     expect(res.statusCode).toEqual(404);
     expect(res.body.error).toBe('To-do item not found');
+  });
+
+  it('should support partial update - title only', async () => {
+    const res = await request(app)
+      .put('/todos/1')
+      .send({ title: 'Partial Update' });
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.title).toBe('Partial Update');
+    expect(res.body.completed).toBe(0); // Should remain unchanged
+  });
+
+  it('should support partial update - completed only', async () => {
+    const res = await request(app)
+      .put('/todos/1')
+      .send({ completed: true });
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.title).toBe('Test Todo 1'); // Should remain unchanged
+    expect(res.body.completed).toBe(1);
+  });
+
+  it('should return 400 when no fields provided for update', async () => {
+    const res = await request(app)
+      .put('/todos/1')
+      .send({});
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.error).toBe('No valid fields to update provided');
   });
 
   it('should delete a todo', async () => {
@@ -141,7 +167,7 @@ describe('Todos API', () => {
         .put('/todos/1')
         .send({ title: 'Test', completed: true });
       expect(res.statusCode).toEqual(200);
-      expect(res.body.completed).toBe(true);
+      expect(res.body.completed).toBe(1); // SQLite stores boolean as 1
     });
 
     it('should accept boolean false', async () => {
@@ -149,7 +175,7 @@ describe('Todos API', () => {
         .put('/todos/1')
         .send({ title: 'Test', completed: false });
       expect(res.statusCode).toEqual(200);
-      expect(res.body.completed).toBe(false);
+      expect(res.body.completed).toBe(0); // SQLite stores boolean as 0
     });
 
     it('should accept string "true"', async () => {
@@ -157,7 +183,7 @@ describe('Todos API', () => {
         .put('/todos/1')
         .send({ title: 'Test', completed: 'true' });
       expect(res.statusCode).toEqual(200);
-      expect(res.body.completed).toBe(true);
+      expect(res.body.completed).toBe(1); // SQLite stores boolean as 1
     });
 
     it('should accept string "false"', async () => {
@@ -165,7 +191,7 @@ describe('Todos API', () => {
         .put('/todos/1')
         .send({ title: 'Test', completed: 'false' });
       expect(res.statusCode).toEqual(200);
-      expect(res.body.completed).toBe(false);
+      expect(res.body.completed).toBe(0); // SQLite stores boolean as 0
     });
 
     it('should accept number 1', async () => {
@@ -173,7 +199,7 @@ describe('Todos API', () => {
         .put('/todos/1')
         .send({ title: 'Test', completed: 1 });
       expect(res.statusCode).toEqual(200);
-      expect(res.body.completed).toBe(true);
+      expect(res.body.completed).toBe(1); // SQLite stores boolean as 1
     });
 
     it('should accept number 0', async () => {
@@ -181,7 +207,16 @@ describe('Todos API', () => {
         .put('/todos/1')
         .send({ title: 'Test', completed: 0 });
       expect(res.statusCode).toEqual(200);
-      expect(res.body.completed).toBe(false);
+      expect(res.body.completed).toBe(0); // SQLite stores boolean as 0
+    });
+
+    it('should ignore unrecognized completed value and not update field', async () => {
+      const res = await request(app)
+        .put('/todos/1')
+        .send({ title: 'Test Unrecognized', completed: 'invalid' });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.title).toBe('Test Unrecognized');
+      expect(res.body.completed).toBe(0); // Should remain unchanged from original
     });
   });
 
