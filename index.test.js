@@ -210,6 +210,22 @@ describe('Todos API', () => {
       expect(res.body.completed).toBe(0); // SQLite stores boolean as 0
     });
 
+    it('should accept string "1"', async () => {
+      const res = await request(app)
+        .put('/todos/1')
+        .send({ title: 'Test', completed: '1' });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.completed).toBe(1); // SQLite stores boolean as 1
+    });
+
+    it('should accept string "0"', async () => {
+      const res = await request(app)
+        .put('/todos/1')
+        .send({ title: 'Test', completed: '0' });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.completed).toBe(0); // SQLite stores boolean as 0
+    });
+
     it('should ignore unrecognized completed value and not update field', async () => {
       const res = await request(app)
         .put('/todos/1')
@@ -221,20 +237,44 @@ describe('Todos API', () => {
   });
 
   describe('Request Body Validation', () => {
-    it('should handle empty request body on POST', async () => {
+    it('should return 400 for empty request body on POST', async () => {
       const res = await request(app)
         .post('/todos')
         .send({});
-      // Should still process but may have database constraint errors
-      expect([201, 500]).toContain(res.statusCode);
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.error).toBe('The "title" field is required and must be a non-empty string');
     });
 
-    it('should handle missing title in POST', async () => {
+    it('should return 400 for missing title in POST', async () => {
       const res = await request(app)
         .post('/todos')
         .send({ completed: false });
-      // Should still process but may have database constraint errors
-      expect([201, 500]).toContain(res.statusCode);
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.error).toBe('The "title" field is required and must be a non-empty string');
+    });
+
+    it('should return 400 for empty string title', async () => {
+      const res = await request(app)
+        .post('/todos')
+        .send({ title: '' });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.error).toBe('The "title" field is required and must be a non-empty string');
+    });
+
+    it('should return 400 for whitespace-only title', async () => {
+      const res = await request(app)
+        .post('/todos')
+        .send({ title: '   ' });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.error).toBe('The "title" field is required and must be a non-empty string');
+    });
+
+    it('should return 400 for non-string title', async () => {
+      const res = await request(app)
+        .post('/todos')
+        .send({ title: 123 });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.error).toBe('The "title" field is required and must be a non-empty string');
     });
 
     it('should reject payload exceeding size limit', async () => {

@@ -23,10 +23,14 @@ const validateId = (req, res, next) => {
 
 // Helper to convert various formats to boolean
 const toBoolean = (value) => {
-  if (value === undefined) return undefined;
+  if (value === undefined || value === null) return undefined;
   if (typeof value === 'boolean') return value;
-  if (value === 'true' || value === 1) return true;
-  if (value === 'false' || value === 0) return false;
+
+  // Handle string and number representations
+  const stringValue = String(value).toLowerCase().trim();
+  if (stringValue === 'true' || stringValue === '1') return true;
+  if (stringValue === 'false' || stringValue === '0') return false;
+
   return undefined; // Return undefined for unrecognized formats
 };
 
@@ -35,6 +39,12 @@ const toBoolean = (value) => {
 // Create a new to-do item
 app.post('/todos', (req, res) => {
   const { title } = req.body;
+
+  // Validate title input
+  if (!title || typeof title !== 'string' || title.trim() === '') {
+    return res.status(400).json({ error: 'The "title" field is required and must be a non-empty string' });
+  }
+
   db.run('INSERT INTO todos (title) VALUES (?)', [title], function(err) {
     if (err) {
       console.error(err);
