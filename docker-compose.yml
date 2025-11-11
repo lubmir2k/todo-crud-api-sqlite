@@ -7,9 +7,8 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - NODE_ENV=production
-      # Allow all origins for development
-      # In production, set ALLOWED_ORIGINS to specific domains
-      - ALLOWED_ORIGINS=*
+      - NODE_ENV=development
+      # Note: CORS is configured in index.js
+      # For production deployment, modify index.js to use environment-based CORS configuration
     restart: unless-stopped
     container_name: todo-api

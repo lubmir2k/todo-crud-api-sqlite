@@ -1,5 +1,5 @@
-# Use the official Node.js image as the base image
-FROM node:18
+# Use Alpine-based Node.js image for smaller size and better security
+FROM node:18-alpine
 
 # Create and set the working directory inside the container
 WORKDIR /usr/src/app
@@ -15,6 +15,9 @@ COPY . .
 
 # Expose the port on which the app will run
 EXPOSE 3000
+
+# Run as non-root user for security
+USER node
 
 # Start the application
 CMD ["npm", "start"]
