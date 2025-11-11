@@ -5,9 +5,8 @@ const db = require('./database');
 // Initialize the Express app and middleware
 const app = express();
 app.use(express.json({ limit: '10kb' })); // for parsing application/json with size limit
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || true
-})); // enable CORS with origin restriction (true allows all origins in dev)
+// CORS configuration - allows all origins in development
+app.use(cors());
 
 // Middleware to validate ID parameter
 const validateId = (req, res, next) => {
