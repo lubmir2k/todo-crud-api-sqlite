@@ -9,6 +9,7 @@ yarn-error.log*
 # Git files
 .git
 .gitignore
+.dockerignore
 
 # Docker files
 Dockerfile*
