@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  todoapi:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      # Allow all origins for development
+      # In production, set ALLOWED_ORIGINS to specific domains
+      - ALLOWED_ORIGINS=*
+    restart: unless-stopped
+    container_name: todo-api
