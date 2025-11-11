@@ -1,0 +1,13 @@
+services:
+  # Todo API Web Service
+  - type: web
+    name: todo-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
