@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git files
+.git
+.gitignore
+.dockerignore
+
+# Docker files
+Dockerfile*
+docker-compose.yml
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+
+# IDE files
+.vscode
+.idea
+
+# Documentation (keep in source, exclude from image)
+README.md
+DEPLOYMENT.md
+TESTING.md
+
+# Deployment configs (not needed in image)
+render.yaml
+railway.json
+fly.toml
+
+# Test files
+*.test.js
+__tests__
